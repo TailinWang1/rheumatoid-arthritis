@@ -4,6 +4,7 @@ library(reshape2)
 library(cowplot)
 library(limma)
 library(Biobase)
+#Please refer to the article for the GSMID used, or replace it with your own
 RA_gset <- getGEO('GSEID', destdir=".",AnnotGPL = T,getGPL = T)
 RA_exp<-exprs(RA_gset[[1]])
 RA_GPL<-fData(RA_gset[[1]])
@@ -14,7 +15,7 @@ RA_exp_symbol<-merge(RA_exp,RA_gpl,by="ID")
 RA_exp_symbol<-na.omit(RA_exp_symbol)
 table(duplicated(RA_exp_symbol$`Gene symbol`))
 RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
-
+#Please refer to the article for the GSMID used, or replace it with your own
 RA_gset <- getGEO('GSEID', destdir=".",AnnotGPL = T,getGPL = T)
 RA_exp<-exprs(RA_gset[[1]])
 RA_GPL<-fData(RA_gset[[1]])
