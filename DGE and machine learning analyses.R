@@ -6,7 +6,7 @@ library(impute)
 library(WGCNA)
 library(readr)
 library(preprocessCore)
-RA_top_table<- read.delim("GSE56649.top.table.tsv", header = TRUE, sep = "\t")
+RA_top_table<- read.delim("GSEID.top.table.tsv", header = TRUE, sep = "\t")
 ra_genes_base <- RA_top_table[which(RA_top_table$adj.P.Val< 0.05),]
 ra_genes<- ra_genes_base$Gene.symbol
 ra_genes_DEG <- unique(ra_genes)
@@ -23,7 +23,7 @@ A
 library(glmnet)
 library(survival)
 library(tidyverse)
-RA_gset <- getGEO('GSE56649', destdir=".",AnnotGPL = T,getGPL = T)
+RA_gset <- getGEO('GSEID', destdir=".",AnnotGPL = T,getGPL = T)
 RA_exp<-exprs(RA_gset[[1]])
 RA_GPL<-fData(RA_gset[[1]])
 RA_gpl<- RA_GPL[, c(1, 3)]
@@ -45,10 +45,10 @@ length(y)
 cvla <- glmnet(x,y,family = 'binomial')
 cv.fit <- cv.glmnet(x,y,family='binomial')
 par(mar=c(7, 4, 4, 2) + 0.1)
-pdf("RA_GSE56649_LASSO_cvla_plot.pdf")
+pdf("RA_LASSO_cvla_plot.pdf")
 plot(cvla, xvar = 'lambda', label = TRUE)
 dev.off()
-pdf("RA_GSE56649_LASSO_cv_fit_plot.pdf")
+pdf("RA_LASSO_cv_fit_plot.pdf")
 plot(cv.fit)
 dev.off()
 cv.fit$lambda.min
@@ -69,7 +69,7 @@ library(randomForest)
 set.seed(21)
 source('msvmRFE.R')
 expression_data <- datExpr0[, A, drop = FALSE] 
-train <- read.csv("RA_GSE56649_23genes_data.csv",row.names = 1,
+train <- read.csv("RA_23genes_data.csv",row.names = 1,
                   as.is = F)
 input <- train
 svmRFE(input, k = 5, halve.above = 100) 
@@ -80,20 +80,20 @@ folds = lapply(1:nfold, function(x) which(folds == x))
 results = lapply(folds, svmRFE.wrap, input, k=5, halve.above=100) 
 top.features = WriteFeatures(results, input, save=F) 
 head(top.features)
-write.csv(top.features,"RA_GSE56649_feature_svm.csv")
+write.csv(top.features,"RA_feature_svm.csv")
 featsweep = lapply(1:23, FeatSweep.wrap, results, input)
 no.info = min(prop.table(table(input[,1])))
 errors = sapply(featsweep, function(x) ifelse(is.null(x), NA, x$error))
-pdf("RA_GSE56649_svm-error.pdf",width = 5,height = 5)
+pdf("RA_svm-error.pdf",width = 5,height = 5)
 PlotErrors(errors, no.info=no.info) 
 dev.off()
-pdf("RA_GSE56649_svm-accuracy.pdf",width = 5,height = 5)
+pdf("RA_svm-accuracy.pdf",width = 5,height = 5)
 Plotaccuracy(1-errors,no.info=no.info)
 dev.off()
 which.min(errors)
 top.features[1:which.min(errors), "FeatureName"]
 top_genes <- top.features[1:which.min(errors), "FeatureName"]
-write.csv(top_genes, file = "RA_GSE56649_SVM_top_genes.csv", row.names = FALSE)
+write.csv(top_genes, file = "RA_SVM_top_genes.csv", row.names = FALSE)
 a1<-Reduce(intersect, list(RA_genecoef,top_genes))
 a1
 
@@ -112,7 +112,7 @@ importance_df <- importance_df[order(importance_df$MeanDecreaseGini, decreasing 
 top_features_rf <- head(importance_df, 10)
 importance_df
 top_features_rf
-pdf("RA_GSE56649_RF_feature_importance.pdf", width = 10, height = 8)
+pdf("RA_RF_feature_importance.pdf", width = 10, height = 8)
 varImpPlot(rf_model, n.var = min(10, nrow(importance_df)), 
            main = "Top 10 Important Features")
 dev.off()
