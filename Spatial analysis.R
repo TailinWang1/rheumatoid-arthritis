@@ -126,10 +126,10 @@ library(dplyr)
 
 seurat_list <- list()
 sample_info <- list(
-  "WT" = "GSM5841550",
-  "Early" = "GSM5841551",
-  "Adv1" = "GSM5841552",
-  "Adv2" = "GSM5841553"
+  "WT" = "GSMID",
+  "Early" = "GSMID",
+  "Adv1" = "GSMID",
+  "Adv2" = "GSMID"
 )
 
 seurat_list1 <- list()
