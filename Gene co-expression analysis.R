@@ -1,0 +1,325 @@
+library(readxl)
+library(dplyr)
+library(limma)
+library(GEOquery)
+library(impute)
+library(WGCNA)
+library(readr)
+library(preprocessCore)
+RA_gset <- getGEO('GSE56649', destdir=".",AnnotGPL = T,getGPL = T)
+RA_exp<-exprs(RA_gset[[1]])
+RA_GPL<-fData(RA_gset[[1]])
+RA_gpl<- RA_GPL[, c(1, 3)]
+RA_exp<-as.data.frame(RA_exp)
+RA_exp$ID<-rownames(RA_exp)
+RA_exp_symbol<-merge(RA_exp,RA_gpl,by="ID")
+RA_exp_symbol<-na.omit(RA_exp_symbol)
+table(duplicated(RA_exp_symbol$`Gene symbol`))
+RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
+datExpr0<- t(RA_datExpr02)
+datExpr1<-datExpr0
+m.vars=apply(datExpr0,2,var)
+expro.upper=datExpr0[,which(m.vars>quantile(m.vars, probs = seq(0, 1, 0.25))[4])]
+datExpr1<-data.matrix(expro.upper)
+gsg = goodSamplesGenes(datExpr1, verbose = 3);
+gsg$allOK
+sampleTree = hclust(dist(datExpr1), method = "average")
+par(cex = 0.7);
+par(mar = c(0,4,2,0))
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+     cex.axis = 1.5, cex.main = 2)
+
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2) +
+  
+  abline(h = 250000, col = "red") 
+clust = cutreeStatic(sampleTree, cutHeight = 250000, minSize = 0)
+keepSamples = (clust==1)
+datExpr = datExpr1[keepSamples, ]
+nGenes = ncol(datExpr)
+nSamples = nrow(datExpr)
+dim(datExpr)
+datExpr = as.data.frame(datExpr)
+
+datExpr = as.data.frame(datExpr1)
+nGenes = ncol(datExpr)
+nSamples = nrow(datExpr)
+
+
+powers = c(c(1:10), seq(from = 12, to=20, by=2))
+
+sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
+pdf("1RA03Threshold.pdf",width = 10, height = 5)
+par(mfrow = c(1,2))
+cex1 = 0.9
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+     main = paste("Scale independence")) +
+  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       labels=powers,cex=cex1,col="red")+
+  abline(h=0.90,col="red")
+plot(sft$fitIndices[,1], sft$fitIndices[,5],
+     xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+     main = paste("Mean connectivity")) +
+  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+dev.off()
+sft$powerEstimate
+
+net = blockwiseModules(datExpr, power = 1,
+                       TOMType = "unsigned", minModuleSize = 30,
+                       reassignThreshold = 0, mergeCutHeight = 0.25,
+                       numericLabels = TRUE, pamRespectsDendro = FALSE,
+                       saveTOMs = TRUE,
+                       #saveTOMFileBase = "MyTOM",
+                       verbose = 3)
+table(net$colors)
+mergedColors = labels2colors(net$colors)
+pdf("2RA03module.pdf",width = 12, height = 5)
+plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]], "Module colors",
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05)
+dev.off()
+moduleLabels = net$colors
+moduleColors = labels2colors(net$colors)
+MEs = net$MEs;
+geneTree = net$dendrograms[[1]]
+text <- unique(moduleColors)
+for (i  in 1:length(text)) {
+  y=t(assign(paste(text[i],"expr",sep = "."),datExpr[moduleColors==text[i]]))
+  write.csv(y,paste(text[i],"csv",sep = "."),quote = F)
+}
+
+RAsamples <- read_excel('RA临床信息全部22.xlsx')
+
+row_names <- RAsamples[[1]]
+
+RAsamples <- RAsamples %>% select(-1)
+
+RAsamples_df <- as.data.frame(RAsamples)
+
+row.names(RAsamples_df) <- row_names
+
+print(RAsamples_df)
+
+moduleLabelsAutomatic = net$colors
+moduleColorsAutomatic = labels2colors(moduleLabelsAutomatic)
+moduleColorsWW = moduleColorsAutomatic
+MEs0 = moduleEigengenes(datExpr, moduleColorsWW)$eigengenes
+MEsWW = orderMEs(MEs0)
+dim(MEsWW)   
+dim(RAsamples_df) 
+modTraitCor = cor(MEsWW, RAsamples_df, use = "p")
+colnames(MEsWW)
+modlues=MEsWW
+modTraitP = corPvalueStudent(modTraitCor, nSamples)
+textMatrix = paste(signif(modTraitCor, 2), "\n(", signif(modTraitP, 1), ")", sep = "")
+dim(textMatrix) = dim(modTraitCor)
+
+pdf("3RA03Module-trait.pdf",width = 6, height = 8)
+labeledHeatmap(Matrix = modTraitCor, xLabels = colnames(RAsamples_df), yLabels = names(MEsWW), cex.lab = 0.8,  yColorWidth=0.02, 
+               xColorWidth = 0.04,
+               ySymbols = colnames(modlues), colorLabels = FALSE, colors = blueWhiteRed(50), 
+               textMatrix = textMatrix, setStdMargins = FALSE, cex.text = 0.5, zlim = c(-1,1)
+               , main = paste("Module-trait relationships"))
+dev.off()
+print(blue.expr)
+blueGenes <- colnames(blue.expr)
+brownGenes<- colnames(brown.expr)
+RAcombinedGenes3 <- c(blueGenes,brownGenes)
+greyGenes<-colnames(grey.expr)
+RAgreyGenes02<- greyGenes
+
+RA_gset <- getGEO('GSE61140', destdir=".",AnnotGPL = T,getGPL = T)
+RA_exp<-exprs(RA_gset[[1]])
+RA_GPL<-fData(RA_gset[[1]])
+str(RA_GPL)
+RA_gpl<- RA_GPL[, c(1, 3)]
+RA_exp<-as.data.frame(RA_exp)
+RA_exp$ID<-rownames(RA_exp)
+RA_exp_symbol<-merge(RA_exp,RA_gpl,by="ID")
+RA_exp_symbol<-na.omit(RA_exp_symbol)
+table(duplicated(RA_exp_symbol$`Gene symbol`))
+RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
+datExpr0<- t(RA_datExpr02)
+datExpr1 <- datExpr0
+m.vars = apply(datExpr0, 2, var)
+expro.upper = datExpr0[, which(m.vars > median(m.vars))]
+datExpr1 <- data.matrix(expro.upper)
+datExpr1 <- data.matrix(expro.upper)
+print(paste("Romo1 in datExpr1:", "Romo1" %in% colnames(datExpr1)))
+print(paste("Romo1 in datExpr1:", "Cd44" %in% colnames(datExpr1)))
+datExpr1 <- datExpr0
+m.vars = apply(datExpr0, 2, var)
+var_threshold = quantile(m.vars, 0.40)
+expro.upper = datExpr0[, which(m.vars > var_threshold)]
+
+datExpr1 <- data.matrix(expro.upper)
+gsg = goodSamplesGenes(datExpr1, verbose = 3);
+gsg$allOK
+
+sampleTree = hclust(dist(datExpr1), method = "average")
+par(cex = 0.7);
+par(mar = c(0,4,2,0))
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+     cex.axis = 1.5, cex.main = 2)
+
+
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2) +
+ 
+  abline(h = 250000, col = "red") 
+clust = cutreeStatic(sampleTree, cutHeight = 250000, minSize = 0)
+keepSamples = (clust==1)
+datExpr = datExpr1[keepSamples, ]
+nGenes = ncol(datExpr)
+nSamples = nrow(datExpr)
+dim(datExpr)
+datExpr = as.data.frame(datExpr)
+
+datExpr = as.data.frame(datExpr1)
+nGenes = ncol(datExpr)
+nSamples = nrow(datExpr)
+
+
+powers = c(c(1:10), seq(from = 12, to=20, by=2))
+
+sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
+pdf("1RA03-GSE61140Threshold.pdf",width = 10, height = 5)
+par(mfrow = c(1,2))
+cex1 = 0.9
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+     main = paste("Scale independence")) +
+  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       labels=powers,cex=cex1,col="red")+
+  abline(h=0.90,col="red")
+plot(sft$fitIndices[,1], sft$fitIndices[,5],
+     xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+     main = paste("Mean connectivity")) +
+  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+dev.off()
+sft$powerEstimate
+
+net = blockwiseModules(datExpr, power = sft$powerEstimate,
+                       TOMType = "unsigned", minModuleSize = 30,
+                       reassignThreshold = 0, mergeCutHeight = 0.25,
+                       numericLabels = TRUE, pamRespectsDendro = FALSE,
+                       saveTOMs = TRUE,
+                       #saveTOMFileBase = "MyTOM",
+                       verbose = 3)
+table(net$colors)
+mergedColors = labels2colors(net$colors)
+pdf("2RA03-GSE61140-module.pdf",width = 12, height = 5)
+plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]], "Module colors",
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05)
+dev.off()
+moduleLabels = net$colors
+moduleColors = labels2colors(net$colors)
+MEs = net$MEs;
+geneTree = net$dendrograms[[1]]
+text <- unique(moduleColors)
+for (i  in 1:length(text)) {
+  y=t(assign(paste(text[i],"expr",sep = "."),datExpr[moduleColors==text[i]]))
+  write.csv(y,paste(text[i],"csv",sep = "."),quote = F)
+}
+
+RAsamples <- read_excel('RA临床信息全部15.xlsx')
+
+row_names <- RAsamples[[1]]
+
+RAsamples <- RAsamples %>% select(-1)
+
+RAsamples_df <- as.data.frame(RAsamples)
+
+row.names(RAsamples_df) <- row_names
+
+print(RAsamples_df)
+
+moduleLabelsAutomatic = net$colors
+moduleColorsAutomatic = labels2colors(moduleLabelsAutomatic)
+moduleColorsWW = moduleColorsAutomatic
+MEs0 = moduleEigengenes(datExpr, moduleColorsWW)$eigengenes
+MEsWW = orderMEs(MEs0)
+dim(MEsWW)   
+dim(RAsamples_df) 
+modTraitCor = cor(MEsWW, RAsamples_df, use = "p")
+colnames(MEsWW)
+modlues=MEsWW
+modTraitP = corPvalueStudent(modTraitCor, nSamples)
+textMatrix = paste(signif(modTraitCor, 2), "\n(", signif(modTraitP, 1), ")", sep = "")
+dim(textMatrix) = dim(modTraitCor)
+
+pdf("3RA03-GSE61140-Module-trait-60.pdf",width = 6, height = 8)
+labeledHeatmap(Matrix = modTraitCor, xLabels = colnames(RAsamples_df), yLabels = names(MEsWW), cex.lab = 0.8,  yColorWidth=0.02, 
+               xColorWidth = 0.04,
+               ySymbols = colnames(modlues), colorLabels = FALSE, colors = blueWhiteRed(50), 
+               textMatrix = textMatrix, setStdMargins = FALSE, cex.text = 1.0, zlim = c(-1,1)
+               , main = paste("Module-trait relationships"))
+dev.off()
+
+genes_of_interest <- c("Romo1", "Cd74", "Cd44", "Mif", "H2-Ab1")
+
+hla_dr_pattern <- "^H2-"
+
+
+find_gene_module <- function(gene, data, colors) {
+  index <- which(colnames(data) == gene)
+  if(length(index) > 0) {
+    return(colors[index])
+  } else {
+    return("Not found")
+  }
+}
+
+
+gene_modules <- sapply(genes_of_interest, find_gene_module, datExpr, moduleColors)
+
+
+hla_dr_genes <- colnames(datExpr)[grep(hla_dr_pattern, colnames(datExpr))]
+hla_dr_modules <- sapply(hla_dr_genes, find_gene_module, datExpr, moduleColors)
+
+library(ggplot2)
+library(ggrepel)
+
+data <- data.frame(
+  module = factor(c("MEbrown", "MEblue", "MEturquoise", "MEblue", "MEblue", "MEturquoise", "MEblue"), 
+                  levels = c("MEturquoise", "MEblue", "MEbrown")),
+  gene = c("Romo1", "Cd74", "Cd44", "Mif", "H2-Ab1", "H2-Eb2", "H2-Aa")
+)
+
+
+n <- nrow(data)
+data$angle <- (1:n * 360 / n) * (pi/180)
+data$x <- cos(data$angle)
+data$y <- sin(data$angle)
+
+
+colors <- c("#A387BD", "#7D9CB6", "#E6A9B8")
+
+
+p <- ggplot(data, aes(x = x, y = y, color = module)) +
+  geom_point(size = 4) +
+  geom_text_repel(aes(label = gene), 
+                  fontface = "bold", size = 4, 
+                  box.padding = unit(0.5, "lines"),
+                  point.padding = unit(0.5, "lines"),
+                  segment.color = "grey70",
+                  force = 10,
+                  max.overlaps = Inf) +
+  scale_color_manual(values = colors) +
+  theme_void() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(face = "bold", size = 12),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA)
+  ) +
+  labs(title = "Gene Module Network",
+       subtitle = "Visualization of Gene-Module Relationships") +
+  coord_equal()
+
+print(p)
+
+ggsave("gene_module_network.png", plot = p, width = 10, height = 8, dpi = 300)
