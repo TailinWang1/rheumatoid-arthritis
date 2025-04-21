@@ -10,6 +10,7 @@ library(Seurat)
 library(dplyr)
 library(future)
 library(glmGamPoi)
+#Please refer to the article for the GSMID used, or replace it with your own
 #HC
 data_seurat<-readRDS("NCpbmc3.rds")
 data_seurat[["percent.mt"]] <- PercentageFeatureSet(data_seurat, pattern = "^MT-")
