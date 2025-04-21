@@ -6,7 +6,7 @@ library(impute)
 library(WGCNA)
 library(readr)
 library(preprocessCore)
-RA_gset <- getGEO('GSE56649', destdir=".",AnnotGPL = T,getGPL = T)
+RA_gset <- getGEO('GSEID', destdir=".",AnnotGPL = T,getGPL = T)
 RA_exp<-exprs(RA_gset[[1]])
 RA_GPL<-fData(RA_gset[[1]])
 RA_gpl<- RA_GPL[, c(1, 3)]
@@ -128,7 +128,7 @@ RAcombinedGenes3 <- c(blueGenes,brownGenes)
 greyGenes<-colnames(grey.expr)
 RAgreyGenes02<- greyGenes
 
-RA_gset <- getGEO('GSE61140', destdir=".",AnnotGPL = T,getGPL = T)
+RA_gset <- getGEO('GSEID', destdir=".",AnnotGPL = T,getGPL = T)
 RA_exp<-exprs(RA_gset[[1]])
 RA_GPL<-fData(RA_gset[[1]])
 str(RA_GPL)
