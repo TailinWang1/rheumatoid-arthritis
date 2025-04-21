@@ -182,7 +182,7 @@ nSamples = nrow(datExpr)
 powers = c(c(1:10), seq(from = 12, to=20, by=2))
 
 sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
-pdf("1RA03-GSE61140Threshold.pdf",width = 10, height = 5)
+pdf("1RA03MUSThreshold.pdf",width = 10, height = 5)
 par(mfrow = c(1,2))
 cex1 = 0.9
 plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
@@ -207,7 +207,7 @@ net = blockwiseModules(datExpr, power = sft$powerEstimate,
                        verbose = 3)
 table(net$colors)
 mergedColors = labels2colors(net$colors)
-pdf("2RA03-GSE61140-module.pdf",width = 12, height = 5)
+pdf("2RA03MUSmodule.pdf",width = 12, height = 5)
 plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]], "Module colors",
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05)
@@ -248,7 +248,7 @@ modTraitP = corPvalueStudent(modTraitCor, nSamples)
 textMatrix = paste(signif(modTraitCor, 2), "\n(", signif(modTraitP, 1), ")", sep = "")
 dim(textMatrix) = dim(modTraitCor)
 
-pdf("3RA03-GSE61140-Module-trait-60.pdf",width = 6, height = 8)
+pdf("3RA03MUSModule-trait-60.pdf",width = 6, height = 8)
 labeledHeatmap(Matrix = modTraitCor, xLabels = colnames(RAsamples_df), yLabels = names(MEsWW), cex.lab = 0.8,  yColorWidth=0.02, 
                xColorWidth = 0.04,
                ySymbols = colnames(modlues), colorLabels = FALSE, colors = blueWhiteRed(50), 
