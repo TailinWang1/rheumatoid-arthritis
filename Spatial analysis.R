@@ -3,7 +3,7 @@ library(ggplot2)
 library(patchwork)
 library(dplyr)
 
-setwd("/Users/jianrong/Downloads/RWORKSPACE/GSE195598_data copy")
+setwd("/Users/")
 sample_info <- list(
   "WT" = "GSM5841550",
   "Early" = "GSM5841551",
@@ -125,7 +125,6 @@ library(patchwork)
 library(dplyr)
 
 seurat_list <- list()
-# 定义样本信息
 sample_info <- list(
   "WT" = "GSM5841550",
   "Early" = "GSM5841551",
@@ -413,10 +412,6 @@ for (gene in genes_of_interest) {
 
 print("T-test results:")
 print(t_test_results)
-
-
-
-
 
 
 library(monocle3)
