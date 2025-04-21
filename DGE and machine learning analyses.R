@@ -6,6 +6,7 @@ library(impute)
 library(WGCNA)
 library(readr)
 library(preprocessCore)
+#Please refer to the article for the GSMID used, or replace it with your own
 RA_top_table<- read.delim("GSEID.top.table.tsv", header = TRUE, sep = "\t")
 ra_genes_base <- RA_top_table[which(RA_top_table$adj.P.Val< 0.05),]
 ra_genes<- ra_genes_base$Gene.symbol
