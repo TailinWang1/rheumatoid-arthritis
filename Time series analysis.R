@@ -8,6 +8,7 @@ library(preprocessCore)
 library(ggplot2)
 library(dplyr)
 library(ggrepel)
+#Please refer to the article for the GSMID used, or replace it with your own
 RA_gset <- getGEO('GSEID', destdir=".",AnnotGPL = T,getGPL = T)
 RA_exp<-exprs(RA_gset[[1]])
 RA_GPL<-fData(RA_gset[[1]])
