@@ -351,7 +351,7 @@ Assays(WT_sample)
 library(Seurat)
 library(dplyr)
 
-genes_of_interest <- c('Cd74', 'H2-Ab1', 'Mif', 'Cd44',"Cxcr4")
+genes_of_interest <- c('C', 'H', 'M', 'C',"C")
 
 calculate_mean_expression <- function(seurat_object, genes) {
   avg_expression <- FetchData(seurat_object, vars = genes) %>%
@@ -450,7 +450,7 @@ perform_trajectory_analysis <- function(seurat_obj, sample_name) {
     ggtitle(paste("Cell trajectory -", sample_name))
   
   
-  genes_of_interest <- c("H2-Ab1", "Cd74")
+  genes_of_interest <- c("H", "C")
   expression_plots <- list()
   
 
