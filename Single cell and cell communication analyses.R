@@ -12,10 +12,10 @@ library(future)
 library(glmGamPoi)
 #Please refer to the article for the GSMID used, or replace it with your own
 #HC
-data_seurat<-readRDS("NCpbmc3.rds")
+data_seurat<-readRDS("NCpbmc.rds")
 data_seurat[["percent.mt"]] <- PercentageFeatureSet(data_seurat, pattern = "^MT-")
 #RA
-data_sample <- Read10X_h5("GSM4819747_RA_filtered_feature_bc_matrix.h5")
+data_sample <- Read10X_h5("GSM.h5")
 data_seurat <- CreateSeuratObject(data_sample, project = "data_sample")
 data_seurat[["percent.mt"]] <- PercentageFeatureSet(data_seurat, pattern = "^MT-")
 
