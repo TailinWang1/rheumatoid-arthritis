@@ -21,8 +21,8 @@ RA_exp_symbol<-na.omit(RA_exp_symbol)
 table(duplicated(RA_exp_symbol$`Gene symbol`))
 RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
 
-Romo1_data <- RA_datExpr02["基因", ]
-Romo1_data <- RA_datExpr02["基因", ]
+R_data <- RA_datExpr02["基因", ]
+R_data <- RA_datExpr02["基因", ]
 group_0_3_days <- c(1,2,3)
 group_1_2_weeks <- c(4,5,6)
 group_3_4_weeks <- c(7,8,9)
@@ -36,11 +36,11 @@ calculate_stats <- function(data) {
     max = max(data))
 }
 
-stats_0_3_days <- calculate_stats(Romo1_data[group_0_3_days])
-stats_1_2_weeks <- calculate_stats(Romo1_data[group_1_2_weeks])
-stats_3_4_weeks <- calculate_stats(Romo1_data[group_3_4_weeks])
-stats_remission_over_3_weeks <- calculate_stats(Romo1_data[group_remission_over_3_weeks])
-stats_control <- calculate_stats(Romo1_data[group_control])
+stats_0_3_days <- calculate_stats(R_data[group_0_3_days])
+stats_1_2_weeks <- calculate_stats(R_data[group_1_2_weeks])
+stats_3_4_weeks <- calculate_stats(R_data[group_3_4_weeks])
+stats_remission_over_3_weeks <- calculate_stats(R_data[group_remission_over_3_weeks])
+stats_control <- calculate_stats(R_data[group_control])
 
 
 results <- data.frame(
@@ -48,14 +48,14 @@ results <- data.frame(
   rbind(stats_0_3_days, stats_1_2_weeks, stats_3_4_weeks, stats_remission_over_3_weeks, stats_control)
 )
 
-print("Statistical summary for Romo1 expression:")
+print("Statistical summary for R expression:")
 print(results)
 
 
 
 
 perform_t_test <- function(group1, group2, group1_name, group2_name) {
-  t_result <- t.test(Romo1_data[group1], Romo1_data[group2])
+  t_result <- t.test(R_data[group1], R_data[group2])
   return(data.frame(
     Comparison = paste(group1_name, "vs", group2_name),
     t_statistic = t_result$statistic,
@@ -103,30 +103,30 @@ prepare_data <- function(gene_data, gene_name) {
 }
 
 plot_data <- rbind(
-  prepare_data(Romo1_data["Romo1",], "Romo1"),
-  prepare_data(Romo1_data["H2-Ab1",], "H2-Ab1")
+  prepare_data(R_data["R",], "R"),
+  prepare_data(R_data["H",], "H")
 )
 
 mean_data <- aggregate(Expression ~ Time + Gene, plot_data, mean)
 
 d
 muted_morandi_colors <- c("#D4A5A5", "#9CAF88", "#A5C0C5", "#B0A5BA", "#E2B49A")
-control_level_Romo1 <- mean(Romo1_data["Romo1", group_control])
-control_level_H2Ab1 <- mean(Romo1_data["H2-Ab1", group_control])
+control_level_R <- mean(R_data["R", group_control])
+control_level_H <- mean(R_data["H", group_control])
 
 p <- ggplot(plot_data, aes(x = Time, y = Expression, color = Time, shape = Gene, group = Gene)) +
   stat_summary(fun = mean, geom = "point", size = 5) +
   stat_summary(fun = mean, geom = "line", size = 1.2) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2, size = 1) +
-  geom_hline(yintercept = control_level_Romo1, linetype = "dashed", color = "#8B0000", size = 1) +
-  geom_hline(yintercept = control_level_H2Ab1, linetype = "dashed", color = "#8B0000", size = 1) +
+  geom_hline(yintercept = control_level_R, linetype = "dashed", color = "#8B0000", size = 1) +
+  geom_hline(yintercept = control_level_H, linetype = "dashed", color = "#8B0000", size = 1) +
   geom_text_repel(data = mean_data, aes(label = sprintf("%.2f", Expression)), 
                   size = 3.5, fontface = "bold", show.legend = FALSE) +
   scale_color_manual(values = muted_morandi_colors) +
   scale_shape_manual(values = c(16, 17)) +
   theme_minimal(base_size = 14) +
   labs(title = "Gene Expression Profile in CIA Mouse Model",
-       subtitle = "Temporal changes in Romo1 and H2-Ab1 expression",
+       subtitle = "Temporal changes in R and H expression",
        x = "Disease Stage",
        y = "Expression Level",
        shape = "Gene",
