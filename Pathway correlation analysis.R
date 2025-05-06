@@ -28,12 +28,12 @@ RA_exp_symbol<-na.omit(RA_exp_symbol)
 table(duplicated(RA_exp_symbol$`Gene symbol`))
 RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
 
-RA_groups <- c(rep("RA", 12), rep("HC", 3))#mus
+RA_groups <- c(rep("RA", ), rep("HC", ))#mus
 
-RA_groups <- c(rep("HC", 5), rep("RA", 9))#human
+RA_groups <- c(rep("HC", ), rep("RA", ))#human
 
-genes_of_interest <- c("MIF", "CD74", "CXCR4", "CD44","HLA-DRA","HLA-DRB4")
-genes_of_interest <- c("Mif", "Cd74", "Cxcr4", "Cd44","H2-Ab1","H2-Aa")
+genes_of_interest <- c("M", "C", "C", "C","H","H")
+genes_of_interest <- c("M", "C", "C", "C","H","H")
 RA_genes <- RA_datExpr02[rownames(RA_datExpr02) %in% genes_of_interest, ]
 
 perform_differential_expression <- function(expression_data, groups) {
