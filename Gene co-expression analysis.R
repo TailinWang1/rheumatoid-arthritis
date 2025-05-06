@@ -89,7 +89,7 @@ for (i  in 1:length(text)) {
   write.csv(y,paste(text[i],"csv",sep = "."),quote = F)
 }
 
-RAsamples <- read_excel('RA临床信息全部.xlsx')
+RAsamples <- read_excel('RA1.xlsx')
 
 row_names <- RAsamples[[1]]
 
@@ -223,7 +223,7 @@ for (i  in 1:length(text)) {
   write.csv(y,paste(text[i],"csv",sep = "."),quote = F)
 }
 
-RAsamples <- read_excel('RA临床信息.xlsx')
+RAsamples <- read_excel('RA2.xlsx')
 
 row_names <- RAsamples[[1]]
 
