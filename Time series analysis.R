@@ -21,8 +21,8 @@ RA_exp_symbol<-na.omit(RA_exp_symbol)
 table(duplicated(RA_exp_symbol$`Gene symbol`))
 RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
 
-Romo1_data <- RA_datExpr02["H2-Ab1", ]
-Romo1_data <- RA_datExpr02["Romo1", ]
+Romo1_data <- RA_datExpr02["基因", ]
+Romo1_data <- RA_datExpr02["基因", ]
 group_0_3_days <- c(1,2,3)
 group_1_2_weeks <- c(4,5,6)
 group_3_4_weeks <- c(7,8,9)
