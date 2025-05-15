@@ -143,16 +143,8 @@ RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol
 datExpr0<- t(RA_datExpr02)
 datExpr1 <- datExpr0
 m.vars = apply(datExpr0, 2, var)
-expro.upper = datExpr0[, which(m.vars > median(m.vars))]
-datExpr1 <- data.matrix(expro.upper)
-datExpr1 <- data.matrix(expro.upper)
-print(paste("Romo1 in datExpr1:", "Romo1" %in% colnames(datExpr1)))
-print(paste("Romo1 in datExpr1:", "Cd44" %in% colnames(datExpr1)))
-datExpr1 <- datExpr0
-m.vars = apply(datExpr0, 2, var)
 var_threshold = quantile(m.vars, 0.40)
 expro.upper = datExpr0[, which(m.vars > var_threshold)]
-
 datExpr1 <- data.matrix(expro.upper)
 gsg = goodSamplesGenes(datExpr1, verbose = 3);
 gsg$allOK
