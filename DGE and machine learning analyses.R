@@ -36,7 +36,7 @@ table(duplicated(RA_exp_symbol$`Gene symbol`))
 RA_datExpr02<-avereps(RA_exp_symbol[,-c(1,ncol(RA_exp_symbol))],ID=RA_exp_symbol$`Gene symbol`)
 datExpr0<- t(RA_datExpr02)
 selected_genes_data <- datExpr0[, A]
-ch <- c(rep(1,13),rep(0,9)) %>% as.data.frame() %>%
+ch <- c(rep(1,NA),rep(0,NA)) %>% as.data.frame() %>%
   set_names('ch')
 set.seed(1)
 x <- as.matrix(selected_genes_data)
@@ -102,7 +102,7 @@ library(randomForest)
 library(caret)
 set.seed(123)
 expression_data <- datExpr0[, a1, drop = FALSE] 
-ch <- c(rep(1,13), rep(0,9))
+ch <- c(rep(1,NA), rep(0,NA))
 ch <- as.factor(ch) 
 rf_model <- randomForest(x = expression_data, y = ch, importance = TRUE, ntree = 500)
 
